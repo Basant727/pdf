@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,17 +7,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Previous basic styles remain the same */
         :root {
             --primary-color: #008CBA;
             --dark-bg: #1a1a1a;
             --dark-secondary: #222;
             --light-bg: #f5f5f5;
             --light-secondary: #fff;
-            --gradient-primary: linear-gradient(45deg, #2196F3, #00BCD4);
         }
 
-        /* Base styles remain the same */
         body {
             margin: 0;
             padding: 0;
@@ -34,104 +31,6 @@
             color: black;
         }
 
-        /* Enhanced file input styles */
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            overflow: hidden;
-            background: var(--gradient-primary);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .file-input-wrapper:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-        }
-
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
-            width: 100%;
-            height: 100%;
-        }
-
-        .file-input-button {
-            padding: 12px 24px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1em;
-        }
-
-        /* Improved toolbar layout */
-        .toolbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 15px;
-            background: var(--dark-secondary);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .light-mode .toolbar {
-            background: var(--light-secondary);
-        }
-
-        .pdf-toolbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1010;
-            background: var(--dark-secondary);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .light-mode .pdf-toolbar {
-            background: var(--light-secondary);
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            background: var(--primary-color);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 140, 186, 0.4);
-        }
-
-        /* Rest of the styles remain the same as in the previous version */
         .main-view {
             padding: 20px;
             height: 100vh;
@@ -151,6 +50,66 @@
 
         .light-mode .pdf-view {
             background: var(--light-bg);
+        }
+
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--dark-secondary);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .pdf-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1010;
+            background: var(--dark-secondary);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .light-mode .pdf-toolbar {
+            background: var(--light-secondary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 140, 186, 0.4);
         }
 
         .files-grid {
@@ -173,6 +132,7 @@
 
         .light-mode .file-card {
             background: var(--light-secondary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .file-card:hover {
@@ -180,10 +140,28 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
+        .file-icon {
+            font-size: 2em;
+            color: var(--primary-color);
+        }
+
+        .file-name {
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .file-size {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
         .pdf-container {
             margin-top: 60px;
             width: 100%;
             height: calc(100vh - 60px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #canvasContainer {
@@ -197,6 +175,7 @@
 
         canvas {
             max-width: 100%;
+            object-fit: contain;
             filter: invert(1) hue-rotate(180deg);
         }
 
@@ -213,25 +192,18 @@
         #zoomLevel {
             min-width: 60px;
             text-align: center;
-            background: var(--dark-secondary);
-            padding: 5px 10px;
-            border-radius: 5px;
-            color: white;
-        }
-
-        .light-mode #zoomLevel {
-            background: var(--light-secondary);
-            color: black;
+            color: inherit;
         }
 
         @media (max-width: 768px) {
-            .controls {
-                justify-content: center;
-            }
-            
             .pdf-toolbar {
                 flex-direction: column;
                 padding: 10px;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
             }
 
             .pdf-container {
@@ -246,10 +218,10 @@
         <div class="toolbar">
             <div class="controls">
                 <div class="file-input-wrapper">
-                    <div class="file-input-button">
-                        <i class="fas fa-file-circle-plus"></i>
-                        Choose PDF Files
-                    </div>
+                    <button class="btn">
+                        <i class="fas fa-file-pdf"></i>
+                        Upload PDFs
+                    </button>
                     <input type="file" id="pdfInput" accept=".pdf" multiple>
                 </div>
                 <button class="btn" id="toggleMode">
@@ -267,11 +239,11 @@
 
     <div class="pdf-view" id="pdfView">
         <div class="pdf-toolbar">
+            <button class="btn" id="backButton">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
             <div class="controls">
-                <button class="btn" id="backButton">
-                    <i class="fas fa-arrow-left"></i>
-                    Back
-                </button>
                 <button class="btn" id="prevPage">
                     <i class="fas fa-chevron-left"></i>
                     Prev
@@ -280,19 +252,19 @@
                     Next
                     <i class="fas fa-chevron-right"></i>
                 </button>
-            </div>
-            <div class="zoom-controls">
-                <button class="btn" id="zoomOut">
-                    <i class="fas fa-search-minus"></i>
-                </button>
-                <div id="zoomLevel">100%</div>
-                <button class="btn" id="zoomIn">
-                    <i class="fas fa-search-plus"></i>
-                </button>
-                <button class="btn" id="fitToPage">
-                    <i class="fas fa-expand"></i>
-                    Fit
-                </button>
+                <div class="zoom-controls">
+                    <button class="btn" id="zoomOut">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <div id="zoomLevel">100%</div>
+                    <button class="btn" id="zoomIn">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="btn" id="fitToPage">
+                        <i class="fas fa-expand"></i>
+                        Fit
+                    </button>
+                </div>
             </div>
         </div>
         <div class="pdf-container">
@@ -300,10 +272,194 @@
         </div>
     </div>
 
-    <!-- The JavaScript remains exactly the same as in the previous complete version -->
     <script>
-        // All the previous JavaScript code remains exactly the same
-        // Including all the functions for PDF handling, zoom, navigation, storage, etc.
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        let currentPDF = null;
+        let currentPage = 1;
+        let currentZoom = 1.0;
+        const storedFiles = new Map();
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStoredFiles();
+            updateUI();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('backButton').addEventListener('click', () => {
+                document.getElementById('mainView').style.display = 'block';
+                document.getElementById('pdfView').style.display = 'none';
+                currentPDF = null;
+                document.getElementById('canvasContainer').innerHTML = '';
+            });
+
+            document.getElementById('pdfInput').addEventListener('change', async (event) => {
+                const files = Array.from(event.target.files);
+                for (const file of files) {
+                    if (storedFiles.size >= 4) {
+                        alert('Maximum 4 PDFs can be stored. Please remove some files first.');
+                        break;
+                    }
+                    const fileId = Date.now() + Math.random().toString(36).substr(2, 9);
+                    storedFiles.set(fileId, {
+                        name: file.name,
+                        size: formatFileSize(file.size),
+                        data: await file.arrayBuffer()
+                    });
+                }
+                updateUI();
+                saveToLocalStorage();
+            });
+
+            document.getElementById('toggleMode').addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+            });
+
+            document.getElementById('clearStorage').addEventListener('click', () => {
+                storedFiles.clear();
+                localStorage.removeItem('pdfFiles');
+                updateUI();
+                document.getElementById('canvasContainer').innerHTML = '';
+            });
+
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCurrentPage();
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                if (currentPDF && currentPage < currentPDF.numPages) {
+                    currentPage++;
+                    renderCurrentPage();
+                }
+            });
+
+            document.getElementById('zoomIn').addEventListener('click', () => {
+                currentZoom += 0.25;
+                renderCurrentPage();
+            });
+
+            document.getElementById('zoomOut').addEventListener('click', () => {
+                currentZoom = Math.max(0.25, currentZoom - 0.25);
+                renderCurrentPage();
+            });
+
+            document.getElementById('fitToPage').addEventListener('click', () => {
+                currentZoom = 'auto';
+                renderCurrentPage();
+            });
+        }
+
+        function updateUI() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            storedFiles.forEach((file, id) => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                card.innerHTML = `
+                    <i class="fas fa-file-pdf file-icon"></i>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${file.size}</div>
+                `;
+                card.addEventListener('click', () => {
+                    document.getElementById('mainView').style.display = 'none';
+                    document.getElementById('pdfView').style.display = 'block';
+                    loadPDF(file.data);
+                });
+                fileList.appendChild(card);
+            });
+        }
+
+        async function renderCurrentPage() {
+            if (!currentPDF) return;
+
+            const container = document.getElementById('canvasContainer');
+            container.innerHTML = '<div class="loading">Loading page...</div>';
+
+            try {
+                const page = await currentPDF.getPage(currentPage);
+                const containerWidth = container.clientWidth;
+                let viewport = page.getViewport({ scale: 1 });
+                let scale = currentZoom === 'auto'
+                    ? (containerWidth - 40) / viewport.width
+                    : currentZoom;
+                
+                viewport = page.getViewport({ scale });
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                container.innerHTML = '';
+                container.appendChild(canvas);
+
+                await page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                }).promise;
+
+                document.getElementById('zoomLevel').textContent = 
+                    currentZoom === 'auto' ? 'Fit' : `${Math.round(currentZoom * 100)}%`;
+            } catch (error) {
+                console.error('Error rendering page:', error);
+                container.innerHTML = '<div class="loading">Error rendering page</div>';
+            }
+        }
+
+        function saveToLocalStorage() {
+            const filesData = Array.from(storedFiles.entries()).map(([id, file]) => ({
+                id,
+                name: file.name,
+                size: file.size,
+                data: Array.from(new Uint8Array(file.data))
+            }));
+
+            try {
+                localStorage.setItem('pdfFiles', JSON.stringify(filesData));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                alert('Unable to save files to storage. The files might be too large.');
+            }
+        }
+
+        function loadStoredFiles() {
+            try {
+                const savedFiles = JSON.parse(localStorage.getItem('pdfFiles')) || [];
+                savedFiles.forEach(file => {
+                    storedFiles.set(file.id, {
+                        name: file.name,
+                        size: file.size,
+                        data: new Uint8Array(file.data).buffer
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading stored files:', error);
+            }
+        }
+
+        async function loadPDF(arrayBuffer) {
+            try {
+                currentPDF = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                currentPage = 1;
+                currentZoom = 'auto';
+                renderCurrentPage();
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>
