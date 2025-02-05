@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -52,33 +52,113 @@
             background: var(--light-bg);
         }
 
-        .back-button {
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--dark-secondary);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .pdf-toolbar {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1010;
+            background: var(--dark-secondary);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .light-mode .pdf-toolbar {
+            background: var(--light-secondary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
             padding: 10px 20px;
-            background: var(--primary-color);
-            color: white;
             border: none;
             border-radius: 5px;
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: bold;
         }
 
-        .back-button:hover {
+        .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 140, 186, 0.4);
         }
 
-        /* Rest of your existing styles... */
-        
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .file-card {
+            background: var(--dark-secondary);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .light-mode .file-card {
+            background: var(--light-secondary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-icon {
+            font-size: 2em;
+            color: var(--primary-color);
+        }
+
+        .file-name {
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .file-size {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
         .pdf-container {
+            margin-top: 60px;
             width: 100%;
-            height: 100vh;
+            height: calc(100vh - 60px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -90,11 +170,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: auto;
         }
 
         canvas {
             max-width: 100%;
-            max-height: 100vh;
             object-fit: contain;
             filter: invert(1) hue-rotate(180deg);
         }
@@ -102,11 +182,39 @@
         .light-mode canvas {
             filter: none;
         }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #zoomLevel {
+            min-width: 60px;
+            text-align: center;
+            color: inherit;
+        }
+
+        @media (max-width: 768px) {
+            .pdf-toolbar {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .pdf-container {
+                margin-top: 120px;
+                height: calc(100vh - 120px);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="main-view" id="mainView">
-        <!-- Your existing toolbar and file list -->
         <div class="toolbar">
             <div class="controls">
                 <div class="file-input-wrapper">
@@ -130,10 +238,35 @@
     </div>
 
     <div class="pdf-view" id="pdfView">
-        <button class="back-button" id="backButton">
-            <i class="fas fa-arrow-left"></i>
-            Back to Files
-        </button>
+        <div class="pdf-toolbar">
+            <button class="btn" id="backButton">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <div class="controls">
+                <button class="btn" id="prevPage">
+                    <i class="fas fa-chevron-left"></i>
+                    Prev
+                </button>
+                <button class="btn" id="nextPage">
+                    Next
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="zoom-controls">
+                    <button class="btn" id="zoomOut">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <div id="zoomLevel">100%</div>
+                    <button class="btn" id="zoomIn">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="btn" id="fitToPage">
+                        <i class="fas fa-expand"></i>
+                        Fit
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="pdf-container">
             <div id="canvasContainer"></div>
         </div>
@@ -144,7 +277,16 @@
 
         let currentPDF = null;
         let currentPage = 1;
+        let currentZoom = 1.0;
         const storedFiles = new Map();
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadStoredFiles();
@@ -160,7 +302,63 @@
                 document.getElementById('canvasContainer').innerHTML = '';
             });
 
-            // Add your other existing event listeners here...
+            document.getElementById('pdfInput').addEventListener('change', async (event) => {
+                const files = Array.from(event.target.files);
+                for (const file of files) {
+                    if (storedFiles.size >= 4) {
+                        alert('Maximum 4 PDFs can be stored. Please remove some files first.');
+                        break;
+                    }
+                    const fileId = Date.now() + Math.random().toString(36).substr(2, 9);
+                    storedFiles.set(fileId, {
+                        name: file.name,
+                        size: formatFileSize(file.size),
+                        data: await file.arrayBuffer()
+                    });
+                }
+                updateUI();
+                saveToLocalStorage();
+            });
+
+            document.getElementById('toggleMode').addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+            });
+
+            document.getElementById('clearStorage').addEventListener('click', () => {
+                storedFiles.clear();
+                localStorage.removeItem('pdfFiles');
+                updateUI();
+                document.getElementById('canvasContainer').innerHTML = '';
+            });
+
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCurrentPage();
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                if (currentPDF && currentPage < currentPDF.numPages) {
+                    currentPage++;
+                    renderCurrentPage();
+                }
+            });
+
+            document.getElementById('zoomIn').addEventListener('click', () => {
+                currentZoom += 0.25;
+                renderCurrentPage();
+            });
+
+            document.getElementById('zoomOut').addEventListener('click', () => {
+                currentZoom = Math.max(0.25, currentZoom - 0.25);
+                renderCurrentPage();
+            });
+
+            document.getElementById('fitToPage').addEventListener('click', () => {
+                currentZoom = 'auto';
+                renderCurrentPage();
+            });
         }
 
         function updateUI() {
@@ -192,10 +390,16 @@
 
             try {
                 const page = await currentPDF.getPage(currentPage);
+                const containerWidth = container.clientWidth;
+                let viewport = page.getViewport({ scale: 1 });
+                let scale = currentZoom === 'auto'
+                    ? (containerWidth - 40) / viewport.width
+                    : currentZoom;
+                
+                viewport = page.getViewport({ scale });
+
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                const viewport = page.getViewport({ scale: 1.5 });
-
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
                 container.innerHTML = '';
@@ -205,15 +409,57 @@
                     canvasContext: context,
                     viewport: viewport
                 }).promise;
+
+                document.getElementById('zoomLevel').textContent = 
+                    currentZoom === 'auto' ? 'Fit' : `${Math.round(currentZoom * 100)}%`;
             } catch (error) {
                 console.error('Error rendering page:', error);
                 container.innerHTML = '<div class="loading">Error rendering page</div>';
             }
         }
 
-        // Your existing functions for file handling, localStorage, etc...
-        // Make sure to keep all the necessary functions from your original code
+        function saveToLocalStorage() {
+            const filesData = Array.from(storedFiles.entries()).map(([id, file]) => ({
+                id,
+                name: file.name,
+                size: file.size,
+                data: Array.from(new Uint8Array(file.data))
+            }));
 
+            try {
+                localStorage.setItem('pdfFiles', JSON.stringify(filesData));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                alert('Unable to save files to storage. The files might be too large.');
+            }
+        }
+
+        function loadStoredFiles() {
+            try {
+                const savedFiles = JSON.parse(localStorage.getItem('pdfFiles')) || [];
+                savedFiles.forEach(file => {
+                    storedFiles.set(file.id, {
+                        name: file.name,
+                        size: file.size,
+                        data: new Uint8Array(file.data).buffer
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading stored files:', error);
+            }
+        }
+
+        async function loadPDF(arrayBuffer) {
+            try {
+                currentPDF = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                currentPage = 1;
+                currentZoom = 'auto';
+                renderCurrentPage();
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>
