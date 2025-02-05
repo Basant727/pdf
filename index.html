@@ -47,6 +47,7 @@
 
         .light-mode .toolbar {
             background: var(--light-secondary);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .controls {
@@ -55,8 +56,22 @@
             align-items: center;
         }
 
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
         .btn {
-            padding: 10px 15px;
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
             background: var(--primary-color);
@@ -71,6 +86,11 @@
 
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 140, 186, 0.4);
+        }
+
+        .btn i {
+            font-size: 1.1em;
         }
 
         .files-grid {
@@ -93,39 +113,62 @@
 
         .light-mode .file-card {
             background: var(--light-secondary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .file-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .pdf-viewer-container {
-            display: none; 
-            flex-direction: column;
-            align-items: center;
+        .file-icon {
+            font-size: 2em;
+            color: var(--primary-color);
+        }
+
+        .file-name {
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .file-size {
+            font-size: 0.9em;
+            opacity: 0.7;
         }
 
         .pdf-container {
             background: var(--dark-secondary);
             padding: 0;
+            margin: 0;
             width: 100%;
-            height: 80vh; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            border-radius: 10px;
+            height: 100vh; 
+            box-sizing: border-box;
+            position: relative;
         }
 
         .light-mode .pdf-container {
             background: var(--light-secondary);
         }
 
+        #canvasContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+        }
+
         canvas {
             width: 100% !important;
-            height: 100% !important;
-            object-fit: contain;
+            height: 100% !important; 
+            object-fit: contain; 
+            filter: invert(1) hue-rotate(180deg);
             transition: all 0.3s ease;
+        }
+
+        .light-mode canvas {
+            filter: none;
         }
 
         .page-controls {
@@ -133,6 +176,27 @@
             justify-content: center;
             gap: 15px;
             margin: 15px 0;
+            align-items: center;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1.2em;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-left: 20px;
+        }
+
+        #zoomLevel {
+            min-width: 60px;
+            text-align: center;
         }
 
         @media (max-width: 768px) {
@@ -145,30 +209,58 @@
                 flex-wrap: wrap;
                 justify-content: center;
             }
+
+            canvas {
+                max-height: calc(100vh - 300px);
+            }
         }
     </style>
 </head>
 <body>
-
     <div class="toolbar">
         <div class="controls">
-            <input type="file" id="pdfInput" accept=".pdf" multiple>
-            <button class="btn" id="toggleMode"><i class="fas fa-moon"></i> Toggle Mode</button>
-            <button class="btn" id="clearStorage"><i class="fas fa-trash"></i> Clear Storage</button>
+            <div class="file-input-wrapper">
+                <button class="btn">
+                    <i class="fas fa-file-pdf"></i>
+                    Upload PDFs
+                </button>
+                <input type="file" id="pdfInput" accept=".pdf" multiple>
+            </div>
+            <button class="btn" id="toggleMode">
+                <i class="fas fa-moon"></i>
+                Toggle Mode
+            </button>
+            <button class="btn" id="clearStorage">
+                <i class="fas fa-trash"></i>
+                Clear Storage
+            </button>
         </div>
-        <div class="page-controls pdf-viewer-container">
-            <button class="btn" id="goBack"><i class="fas fa-arrow-left"></i> Go Back</button>
-            <button class="btn" id="prevPage"><i class="fas fa-chevron-left"></i> Prev</button>
-            <button class="btn" id="nextPage"><i class="fas fa-chevron-right"></i> Next</button>
+        <div class="page-controls">
+            <button class="btn" id="prevPage">
+                <i class="fas fa-chevron-left"></i> Prev
+            </button>
+            <button class="btn" id="nextPage">
+                <i class="fas fa-chevron-right"></i> Next
+            </button>
+            <div class="zoom-controls">
+                <button class="btn" id="zoomIn">
+                    <i class="fas fa-search-plus"></i> Zoom In
+                </button>
+                <button class="btn" id="zoomOut">
+                    <i class="fas fa-search-minus"></i> Zoom Out
+                </button>
+                <button class="btn" id="fitToPage">
+                    Fit to Page
+                </button>
+                <div id="zoomLevel">100%</div>
+            </div>
         </div>
     </div>
 
     <div class="files-grid" id="fileList"></div>
 
-    <div class="pdf-viewer-container">
-        <div class="pdf-container" id="pdfContainer">
-            <canvas id="pdfCanvas"></canvas>
-        </div>
+    <div class="pdf-container" id="pdfContainer">
+        <div id="canvasContainer"></div>
     </div>
 
     <script>
@@ -176,68 +268,171 @@
 
         let currentPDF = null;
         let currentPage = 1;
+        let currentZoom = 1.0;
+        const storedFiles = new Map();
 
-        document.getElementById('pdfInput').addEventListener('change', (event) => {
-            const files = Array.from(event.target.files);
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-
-            files.forEach((file) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const arrayBuffer = e.target.result;
-                    const fileCard = document.createElement('div');
-                    fileCard.className = 'file-card';
-                    fileCard.innerHTML = `<i class="fas fa-file-pdf file-icon"></i>
-                                          <div class="file-name">${file.name}</div>`;
-                    fileCard.addEventListener('click', () => openPDF(arrayBuffer));
-                    fileList.appendChild(fileCard);
-                };
-                reader.readAsArrayBuffer(file);
-            });
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStoredFiles();
+            updateUI();
+            setupZoomControls();
         });
 
-        function openPDF(arrayBuffer) {
-            pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(pdf => {
-                currentPDF = pdf;
-                currentPage = 1;
-                document.querySelector('.files-grid').style.display = 'none';
-                document.querySelector('.pdf-viewer-container').style.display = 'flex';
-                renderPage();
+        function setupZoomControls() {
+            document.getElementById('zoomIn').addEventListener('click', () => {
+                currentZoom += 0.25;
+                renderCurrentPage();
+            });
+
+            document.getElementById('zoomOut').addEventListener('click', () => {
+                currentZoom = Math.max(0.25, currentZoom - 0.25);
+                renderCurrentPage();
+            });
+
+            document.getElementById('fitToPage').addEventListener('click', () => {
+                currentZoom = 'auto';
+                renderCurrentPage();
             });
         }
 
-        function renderPage() {
-            currentPDF.getPage(currentPage).then(page => {
-                const viewport = page.getViewport({ scale: 1 });
-                const canvas = document.getElementById('pdfCanvas');
+        async function renderCurrentPage() {
+            if (!currentPDF) return;
+
+            const container = document.getElementById('canvasContainer');
+            container.innerHTML = '<div class="loading">Loading page...</div>';
+
+            try {
+                const page = await currentPDF.getPage(currentPage);
+                const containerWidth = container.clientWidth;
+                let viewport = page.getViewport({ scale: 1 });
+                let scale = currentZoom === 'auto'
+                    ? (containerWidth - 40) / viewport.width
+                    : currentZoom;
+                
+                viewport = page.getViewport({ scale });
+
+                const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
+                container.innerHTML = '';
+                container.appendChild(canvas);
 
-                page.render({ canvasContext: context, viewport });
+                await page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                }).promise;
+
+                document.getElementById('zoomLevel').textContent = currentZoom === 'auto' ? 'Fit' : `${Math.round(currentZoom * 100)}%`;
+            } catch (error) {
+                console.error('Error rendering page:', error);
+                container.innerHTML = '<div class="loading">Error rendering page</div>';
+            }
+        }
+
+        function updateUI() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            storedFiles.forEach((file, id) => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                card.innerHTML = `
+                    <i class="fas fa-file-pdf file-icon"></i>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${file.size}</div>
+                `;
+                card.addEventListener('click', () => {
+                    loadPDF(file.data);
+                    currentZoom = 'auto';
+                });
+                fileList.appendChild(card);
             });
         }
+
+        function saveToLocalStorage() {
+            const filesData = Array.from(storedFiles.entries()).map(([id, file]) => ({
+                id,
+                name: file.name,
+                size: file.size,
+                data: Array.from(new Uint8Array(file.data))
+            }));
+
+            try {
+                localStorage.setItem('pdfFiles', JSON.stringify(filesData));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                alert('Unable to save files to storage. The files might be too large.');
+            }
+        }
+
+        function loadStoredFiles() {
+            try {
+                const savedFiles = JSON.parse(localStorage.getItem('pdfFiles')) || [];
+                savedFiles.forEach(file => {
+                    storedFiles.set(file.id, {
+                        name: file.name,
+                        size: file.size,
+                        data: new Uint8Array(file.data).buffer
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading stored files:', error);
+            }
+        }
+
+        document.getElementById('pdfInput').addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+            for (const file of files) {
+                if (storedFiles.size >= 4) {
+                    alert('Maximum 4 PDFs can be stored. Please remove some files first.');
+                    break;
+                }
+                const fileId = Date.now() + Math.random().toString(36).substr(2, 9);
+                storedFiles.set(fileId, {
+                    name: file.name,
+                    size: formatFileSize(file.size),
+                    data: await file.arrayBuffer()
+                });
+            }
+            updateUI();
+            saveToLocalStorage();
+        });
+
+        document.getElementById('toggleMode').addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+        });
+
+        document.getElementById('clearStorage').addEventListener('click', () => {
+            storedFiles.clear();
+            localStorage.removeItem('pdfFiles');
+            updateUI();
+            document.getElementById('canvasContainer').innerHTML = '';
+        });
 
         document.getElementById('prevPage').addEventListener('click', () => {
             if (currentPage > 1) {
                 currentPage--;
-                renderPage();
+                renderCurrentPage();
             }
         });
 
         document.getElementById('nextPage').addEventListener('click', () => {
             if (currentPDF && currentPage < currentPDF.numPages) {
                 currentPage++;
-                renderPage();
+                renderCurrentPage();
             }
         });
 
-        document.getElementById('goBack').addEventListener('click', () => {
-            document.querySelector('.pdf-viewer-container').style.display = 'none';
-            document.querySelector('.files-grid').style.display = 'grid';
-        });
+        async function loadPDF(arrayBuffer) {
+            try {
+                currentPDF = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                currentPage = 1;
+                renderCurrentPage();
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF. Please try again.');
+            }
+        }
     </script>
-
 </body>
 </html>
