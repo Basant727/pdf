@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Previous styles remain the same until canvas styles */
+        /* Styles remain the same */
         :root {
             --primary-color: #008CBA;
             --dark-bg: #1a1a1a;
@@ -286,8 +286,6 @@
             });
         }
 
-        // Previous event listeners and functions remain the same
-
         async function renderCurrentPage() {
             if (!currentPDF) return;
 
@@ -340,7 +338,7 @@
             }, 200);
         });
 
-        // Previous functions (updateUI, formatFileSize, saveToLocalStorage, loadStoredFiles) remain the same
+        // Functions for UI updates, file handling, and localStorage management
         function updateUI() {
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
@@ -452,6 +450,18 @@
                 renderCurrentPage();
             }
         });
+
+        // Load and render PDF
+        async function loadPDF(arrayBuffer) {
+            try {
+                currentPDF = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                currentPage = 1;
+                renderCurrentPage();
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>
